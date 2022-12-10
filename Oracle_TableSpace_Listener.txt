@@ -1,0 +1,442 @@
+login as: oracle
+oracle@192.168.247.10's password:
+Last login: Sat Dec 10 22:59:40 2022
+[oracle@Ahamad ~]$ ps - ef|grep pmon
+error: garbage option
+
+Usage:
+ ps [options]
+
+ Try 'ps --help <simple|list|output|threads|misc|all>'
+  or 'ps --help <s|l|o|t|m|a>'
+ for additional help text.
+
+For more details see ps(1).
+[oracle@Ahamad ~]$ pf -ef|grep pmon
+bash: pf: command not found...
+[oracle@Ahamad ~]$ ps -ef|grep pmon
+grid      6112     1  0 23:04 ?        00:00:00 asm_pmon_+ASM
+oracle    6349     1  0 23:05 ?        00:00:00 ora_pmon_orcl
+oracle    7980  7096  0 23:07 pts/1    00:00:00 grep --color=auto pmon
+[oracle@Ahamad ~]$ sqlplus / as sysdba
+
+SQL*Plus: Release 12.2.0.1.0 Production on Sat Dec 10 23:08:16 2022
+
+Copyright (c) 1982, 2016, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+
+SQL>
+SQL>
+SQL> select name from v$tablespace;
+
+NAME
+------------------------------
+SYSAUX
+SYSTEM
+UNDOTBS1
+USERS
+TEMP
+TBS1
+
+6 rows selected.
+
+SQL> select name,bytes/1024/1024 from v$tablespace;
+select name,bytes/1024/1024 from v$tablespace
+            *
+ERROR at line 1:
+ORA-00904: "BYTES": invalid identifier
+
+
+SQL> select file_name,BYTES/1024/1024 from DBA_DATA_FILES;
+
+FILE_NAME
+--------------------------------------------------------------------------------
+BYTES/1024/1024
+---------------
++DATA/ORCL/DATAFILE/system.256.1122979775
+            810
+
++DATA/ORCL/DATAFILE/sysaux.257.1122979811
+            480
+
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf
+              2
+
+
+FILE_NAME
+--------------------------------------------------------------------------------
+BYTES/1024/1024
+---------------
++DATA/ORCL/DATAFILE/users.259.1122979837
+              5
+
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs2_data.dbf
+              3
+
++DATA/ORCL/DATAFILE/undotbs1.258.1122979835
+             65
+
+
+6 rows selected.
+
+SQL> set col a8
+SP2-0158: unknown SET option "col"
+SQL> set pages 500
+SQL> col FILE_NAME a10
+SP2-0158: unknown COLUMN option "a10"
+SQL>
+SQL>
+SQL>
+SQL> desc dba_data_files;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ FILE_NAME                                          VARCHAR2(513)
+ FILE_ID                                            NUMBER
+ TABLESPACE_NAME                                    VARCHAR2(30)
+ BYTES                                              NUMBER
+ BLOCKS                                             NUMBER
+ STATUS                                             VARCHAR2(9)
+ RELATIVE_FNO                                       NUMBER
+ AUTOEXTENSIBLE                                     VARCHAR2(3)
+ MAXBYTES                                           NUMBER
+ MAXBLOCKS                                          NUMBER
+ INCREMENT_BY                                       NUMBER
+ USER_BYTES                                         NUMBER
+ USER_BLOCKS                                        NUMBER
+ ONLINE_STATUS                                      VARCHAR2(7)
+ LOST_WRITE_PROTECT                                 VARCHAR2(7)
+
+SQL> desc dba_free_space;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ TABLESPACE_NAME                                    VARCHAR2(30)
+ FILE_ID                                            NUMBER
+ BLOCK_ID                                           NUMBER
+ BYTES                                              NUMBER
+ BLOCKS                                             NUMBER
+ RELATIVE_FNO                                       NUMBER
+
+SQL>
+SQL>
+SQL>
+SQL> select SUBSTR(df.name,1,40) file_name,
+  2  df.bytes/1024/1024 allocated_mb,
+((df.bytes/1024/1024)-NVL(SUM(dfs.bytes)/1024/1024,0)) used_mb,NVL(SUM(dfs.bytes)/1024/1024,0)
+  3    4  free_space_mb from v$datafile df,
+dba_free_space dfs where df.file#=dfs.file_id(+)
+SQL> SQL>   2    3    4    5    6  group by dfs.file_id,df.name,df.file#,df.bytes order by file_name;
+
+col "Database Size" for a20
+col "Free space" for a20
+col "Used space" for a20
+select round(sum(used.bytes)/1024/1024/1024) || 'GB' "Database Size"
+,round(sum(used.bytes)/1024/1024/1024) - round(free.p/1024/1024/1024) || 'GB' "Used space"
+,round(free.p/1024/1024/1024) || 'GB' "Free space"
+from (select bytes from v$datafile
+union all
+select bytes from v$tempfile
+union all
+select bytes from v$log) used
+,(select sum(bytes) as p from dba_free_space) free group by free.p  5    6  SQL> SQL>   2        3    4    5    6  group by dfs.file_id,df.name,df.file#,df.bytes order by file_name
+*
+ERROR at line 6:
+ORA-00933: SQL command not properly ended
+
+
+SQL> SQL> SQL> SQL> SQL>   2    3    4    5    6    7    8    9
+ 10
+SQL>
+SQL>
+SQL>
+SQL>
+SQL> set colsep |
+set linesize 100 pages 100 trimspool on numwidth 14
+col name format a25
+SQL> SQL> SQL> col owner for a15
+col "used gb" for a15
+SQL> SQL> SQL> SP2-0734: unknown command beginning "SQL> SQL> ..." - rest of line ignored.
+SQL> SQL> col "free gb" for a15
+col "used %" for a15
+col "size m" for a15
+
+select d.status "status",d.tablespace_name "name",
+ TO_CHAR(NVL(a.bytes/1024/1024/1024,0),'99,999,990.90') "size gb",
+ TO_CHAR(NVL(a.bytes-NVL(f.bytes,0),0)/1024/1024/1024,'99999999.99') "used gb",
+ TO_CHAR(NVL(f.bytes/1024/1024/1024,0),'99,999,990.90') "free gb",
+ TO_CHAR(NVL((a.bytes-NVL(f.bytes,0))/a.bytes*100,0),'990.00') "used %"
+from sys.dba_tablespaces d,
+SQL> SQL> SQL> SQL> SQL> SQL> (select tablespace_name,sum(bytes) bytes from dba_data_files group by tablespace_name) a,
+(select tablespace_name,sum(bytes) bytes from dba_free_space group by tablespace_name) f
+where d.tablespace_name=a.tablespace_name(+) and d.tablespace_name=f.tablespace_name(+) and
+NOT (d.extent_management like 'LOCAL' AND d.contents like 'TEMPORARY')
+SQL> SQL> SQL> SQL>   2    3    4    5    6    7    8    9   10   11  UNION ALL
+select d.status "status",d.tablespace_name "name",
+ TO_CHAR(NVL(a.bytes/1024/1024/1024,0),'99,999,990.90') "size gb",
+ 12   13   14   TO_CHAR(NVL(t.bytes,0)/1024/1024/1024,'99999999.99') "used gb",
+ 15   TO_CHAR(NVL((a.bytes-NVL(t.bytes,0))/1024/1024/1024,0),'99,999,990.90') "free gb",
+ TO_CHAR(NVL(t.bytes/a.bytes*100,0),'990.00') "used %"
+ 16   17  from sys.dba_tablespaces d,
+(select tablespace_name,sum(bytes) bytes from dba_temp_files group by tablespace_name) a,
+(select tablespace_name,sum(bytes_cached) bytes from v$temp_extent_pool group by tablespace_name) t
+where d.tablespace_name=a.tabl 18  espace_name(+) AND d.tablespace_name=t.tablespace_name(+) AND
+d.extent_management like 'LOCAL' AND d.contents like 'TEMPORARY'; 19   20   21
+SQL> SQL> SQL> SQL> SQL> SQL> (select tablespace_name,sum(bytes) bytes from dba_data_files group by tablespace_name) a,
+   *
+ERROR at line 7:
+ORA-00933: SQL command not properly ended
+
+
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL>
+SQL> col "free gb" for a15
+col "used %" for a15
+col "size m" for a15
+
+select d.status "status",d.tablespace_name "name",
+ TO_CHAR(NVL(a.bytes/1024/1024,0),'99,999,990.90') "size gb",
+ TO_CHAR(NVL(a.bytes-NVL(f.bytes,0),0)/1024/1024,'99999999.99') "used gb",
+ TO_CHAR(NVL(f.bytes/1024/1024,0),'99,999,990.90') "free gb",
+ TO_CHAR(NVL((a.bytes-NVL(f.bytes,0))/a.bytes*100,0),'990.00') "used %"
+from sys.dba_tablespaces d,
+(select tablespace_name,sum(bytes) bytes from dba_data_files group by tablespace_name) a,
+(select tablespace_name,sum(bytes) bytes from dba_free_space group by tablespace_name) f
+where d.tablespace_name=a.tablespace_name(+) and d.tablespace_name=f.tablespace_name(+) and
+NOT (d.extent_management like 'LOCAL' AND d.contents like 'TEMPORARY')
+UNION ALSQL> L
+select d.status "status",d.tablespace_name "name",
+ TO_CHAR(NVL(a.bytes/1024/1024,0),'99,999,990.90') "size gb",
+ TO_CHAR(NVL(t.bytes,0)/1024/1024,'99999999.99') "used gb",
+ TO_CHAR(NVL((a.bytes-NVL(t.bytes,0))/1024/1024,0),'99,999,990.90') "free gb",SQL>
+ TO_CHAR(NVL(t.bytes/a.bytes*100,0),'990.00') "used %"
+from sys.dba_tablespaces d,
+SQL> SQL>   2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18  (select tablespace_name,sum(bytes) bytes from dba_temp_files group by tablespace_name) a,
+(select tablespace_name,sum(bytes_cached) bytes from v$temp_extent_pool group by tablespace_name) t
+where d.tablespace_name=a.tablespace_name(+) AND d.tablespace_name=t.tablespace_name(+) AND
+d.extent_management like 'LOCAL' AND  19  d.contents like 'TEMPORARY'; 20   21
+
+status   |name                     |size gb       |used gb        |free gb        |used %
+---------|-------------------------|--------------|---------------|---------------|---------------
+ONLINE   |SYSTEM                   |        810.00|      807.56   |          2.44 |  99.70
+ONLINE   |SYSAUX                   |        480.00|      458.69   |         21.31 |  95.56
+ONLINE   |UNDOTBS1                 |         65.00|       30.00   |         35.00 |  46.15
+ONLINE   |USERS                    |          5.00|        1.00   |          4.00 |  20.00
+ONLINE   |TBS1                     |          5.00|        1.06   |          3.94 |  21.25
+ONLINE   |TEMP                     |         32.00|       31.00   |          1.00 |  96.88
+
+6 rows selected.
+
+SQL>
+SQL>
+SQL>
+SQL>
+SQL> select name from v$datafiles;
+select name from v$datafiles
+                 *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+SQL> select name FROM v$datafiles;
+select name FROM v$datafiles
+                 *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+SQL> select name fro v$tablespace;
+select name fro v$tablespace
+                *
+ERROR at line 1:
+ORA-00923: FROM keyword not found where expected
+
+
+SQL> select file_name from dba_data_files;
+
+FILE_NAME
+----------------------------------------------------------------------------------------------------
++DATA/ORCL/DATAFILE/system.256.1122979775
++DATA/ORCL/DATAFILE/sysaux.257.1122979811
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf
++DATA/ORCL/DATAFILE/users.259.1122979837
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs2_data.dbf
++DATA/ORCL/DATAFILE/undotbs1.258.1122979835
+
+6 rows selected.
+
+SQL>  select file_name from tbs_table_space;
+ select file_name from tbs_table_space
+                       *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+SQL> select name from v$tabespace;
+select name from v$tabespace
+                 *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+SQL> select name from v$tablespace;
+
+NAME
+-------------------------
+SYSAUX
+SYSTEM
+UNDOTBS1
+USERS
+TEMP
+TBS1
+
+6 rows selected.
+
+SQL> select sum(BYTES/1024/1024) from dba_data_files where tablespace_name = 'TBS1';
+
+SUM(BYTES/1024/1024)
+--------------------
+                   5
+
+SQL> desc tablespace_name;
+ERROR:
+ORA-04043: object tablespace_name does not exist
+
+
+SQL> asmcmd
+SP2-0042: unknown command "asmcmd" - rest of line ignored.
+SQL> asmcmd
+SP2-0042: unknown command "asmcmd" - rest of line ignored.
+SQL> exit
+Disconnected from Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+[oracle@Ahamad ~]$ su - grid
+Password:
+Last login: Sat Dec 10 22:59:12 IST 2022
+[grid@Ahamad ~]$ asmcmd
+
+ASMCMD> ASMCMD>
+ASMCMD> lscd
+ASMCMD-8022: unknown command 'lscd' specified
+ASMCMD> lsdg
+State    Type    Rebal  Sector  Logical_Sector  Block       AU  Total_MB  Free_MB  Req_mir_free_MB  Usable_file_MB  Offline_disks  Voting_files  Name
+MOUNTED  EXTERN  N         512             512   4096  4194304     10240    10140                0           10140              0             N  CRS/
+MOUNTED  EXTERN  N         512             512   4096  4194304     10240     8076                0            8076              0             N  DATA/
+MOUNTED  EXTERN  N         512             512   4096  4194304     10236     9500                0            9500              0             N  FRA/
+ASMCMD>
+ASMCMD>
+ASMCMD>
+ASMCMD>
+ASMCMD>
+ASMCMD> exit
+[grid@Ahamad ~]$ su - oracle
+Password:
+Last login: Sat Dec 10 23:06:13 IST 2022 from 192.168.247.14 on pts/1
+[oracle@Ahamad ~]$ sqlplus / as sysdba
+
+SQL*Plus: Release 12.2.0.1.0 Production on Sat Dec 10 23:53:06 2022
+
+Copyright (c) 1982, 2016, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+
+SQL> alter database
+  2
+SQL> alter database datafile '/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf' 1m;
+alter database datafile '/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf' 1m
+                                                                                   *
+ERROR at line 1:
+ORA-01916: keyword ONLINE, OFFLINE, RESIZE, AUTOEXTEND, END, DROP, ENABLE,
+REMOVE, SUSPEND, ENCRYPT, or DECRYPT expected
+
+
+SQL> alter database datafile '/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf' resize 1m;
+
+Database altered.
+
+SQL> select file_name,BYTES/1024/1024 from dba_data_files where tablespace_name = 'TBS1';
+
+FILE_NAME
+--------------------------------------------------------------------------------
+BYTES/1024/1024
+---------------
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf
+              1
+
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs2_data.dbf
+              3
+
+
+SQL>  alter database datafile '/u01/app/oracle/product/12.2.0/db_home/dbs/tbs2_data.dbf' resize 2m;
+
+Database altered.
+
+SQL>  select file_name,BYTES/1024/1024 from dba_data_files where tablespace_name = 'TBS1';
+
+FILE_NAME
+--------------------------------------------------------------------------------
+BYTES/1024/1024
+---------------
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs1_data.dbf
+              1
+
+/u01/app/oracle/product/12.2.0/db_home/dbs/tbs2_data.dbf
+              2
+
+
+SQL> !df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.8G     0  1.8G   0% /dev
+tmpfs           1.8G  640M  1.2G  36% /dev/shm
+tmpfs           1.8G  9.6M  1.8G   1% /run
+tmpfs           1.8G     0  1.8G   0% /sys/fs/cgroup
+/dev/sda3        90G   39G   52G  43% /
+/dev/sda1       509M  226M  284M  45% /boot
+tmpfs           365M     0  365M   0% /run/user/54331
+tmpfs           365M   36K  365M   1% /run/user/54321
+/dev/sr0         51M   51M     0 100% /run/media/oracle/VBox_GAs_7.0.4
+
+SQL>
+SQL>
+SQL>
+SQL> exit
+Disconnected from Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+[oracle@Ahamad ~]$ ps -ef|grep pmon
+grid      6112     1  0 Dec10 ?        00:00:00 asm_pmon_+ASM
+oracle    6349     1  0 Dec10 ?        00:00:00 ora_pmon_orcl
+oracle   11416   594  0 00:11 pts/1    00:00:00 grep --color=auto pmon
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$ ps -ef|grep tns
+root        23     2  0 Dec10 ?        00:00:00 [netns]
+grid      4447     1  0 Dec10 ?        00:00:00 /u01/app/grid/product/12.2.0/grid_home/bin/tnslsnr LISTENER -no_crs_notify -inherit
+oracle   11526   594  0 00:11 pts/1    00:00:00 grep --color=auto tns
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$ lsnrctl
+
+LSNRCTL for Linux: Version 12.2.0.1.0 - Production on 11-DEC-2022 00:17:48
+
+Copyright (c) 1991, 2016, Oracle.  All rights reserved.
+
+Welcome to LSNRCTL, type "help" for information.
+
+LSNRCTL> cat $ORACLE_HOME/network/admin/listerner.ora
+NL-00853: undefined command "cat".  Try "help"
+LSNRCTL> exit
+[oracle@Ahamad ~]$ cat $ORACLE_HOME/network/admin/listerner.ora
+cat: /u01/app/oracle/product/12.2.0/db_home/network/admin/listerner.ora: No such file or directory
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$
+[oracle@Ahamad ~]$
